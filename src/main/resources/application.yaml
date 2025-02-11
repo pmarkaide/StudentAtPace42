@@ -1,6 +1,6 @@
 ktor:
     application:
         modules:
-            - com.pace42.ApplicationKt.module
+            - com.pace42.student.ApplicationKt.module
     deployment:
-        port: 8080
+        port: 8000

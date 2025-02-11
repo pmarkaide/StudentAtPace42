@@ -1,5 +1,6 @@
 package com.pace42
 
+import com.pace42.com.pace42.student.module
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
