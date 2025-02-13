@@ -1,19 +1,9 @@
 package com.pace42.student
 
-import com.pace42.student.plugins.configureHTTP
-import com.pace42.student.routes.configureRouting
-import com.pace42.student.plugins.configureSecurity
-import com.pace42.student.plugins.configureSerialization
-import io.ktor.server.application.*
-import io.ktor.server.netty.*
+import com.pace42.student.auth.fetch42token
 
-fun main(args: Array<String>) {
-    EngineMain.main(args)
+suspend fun main() {
+    val token42 = fetch42token()
+    println(token42)
 }
 
-fun Application.module() {
-    configureSecurity()
-    configureSerialization()
-    configureHTTP()
-    configureRouting()
-}
