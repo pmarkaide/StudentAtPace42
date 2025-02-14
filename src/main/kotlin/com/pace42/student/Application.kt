@@ -12,7 +12,7 @@ suspend fun main() {
 
     val studentAPI = StudentAPI(token42)
     try {
-        val  students = studentAPI.fetchCohort("2023", "july")
+        val  students = studentAPI.fetchCohort("Hiver5")
         studentAPI.close()
         println("Number of students: ${students.size}")
         if (students.isNotEmpty()) {

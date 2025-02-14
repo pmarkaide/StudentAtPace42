@@ -29,33 +29,33 @@ class StudentAPI(private val token42: String) {
         client.close()
     }
 
-    private fun determineCohort(year: String, month: String): String {
-        return when {
-            year == "2023" && month.lowercase() == "july" -> "Hiver_5"
-            year == "2023" && month.lowercase() == "august" -> "Hiver_5"
-            year == "2024" && month.lowercase() == "january" -> "Hiver_6"
-            year == "2024" && month.lowercase() == "february" -> "Hiver_6"
-            year == "2024" && month.lowercase() == "july" -> "Hiver_7"
-            year == "2024" && month.lowercase() == "august" -> "Hiver_7"
-            year == "2024" && month.lowercase() == "september" -> "Hiver_7"
-            else -> "Unknown Cohort"
+    data class CohortDates(
+        val year: String,
+        val month: String,
+    )
+
+    private fun getYearMonthFromCohort(cohort: String): CohortDates {
+        return when (cohort) {
+            "Hiver5" -> CohortDates("2023", "july,august")
+            "Hiver6" -> CohortDates("2024", "january,february")
+            "Hiver7" -> CohortDates("2024", "july,august,september")
+            else -> CohortDates("Unknown", "Unknown")
         }
     }
-    suspend fun fetchCohort(year: String, month: String): List<Student> {
 
+    suspend fun fetchCohort(cohort: String): List<Student> {
+
+        val cohortDates = getYearMonthFromCohort(cohort)
         val baseUrl = "https://api.intra.42.fr/v2/campus/13"
-        val response = client.get("$baseUrl/users?filter[pool_year]=$year&filter[pool_month]=$month") {
+        val response = client.get("$baseUrl/users?filter[pool_year]=${cohortDates.year}&filter[pool_month]=${cohortDates.month}") {
             headers {
                 append("Authorization", "Bearer $token42")
             }
         }
         val students = response.body<List<Student>>()
 
-        // add cohort to object
-        val cohortName = determineCohort(year, month)
-
         return students.map { student ->
-            student.copy(cohort = cohortName)
+            student.copy(cohort = cohort)
         }
 
     }
