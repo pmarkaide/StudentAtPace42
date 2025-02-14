@@ -29,6 +29,18 @@ class StudentAPI(private val token42: String) {
         client.close()
     }
 
+    private fun determineCohort(year: String, month: String): String {
+        return when {
+            year == "2023" && month.lowercase() == "july" -> "Hiver_5"
+            year == "2023" && month.lowercase() == "august" -> "Hiver_5"
+            year == "2024" && month.lowercase() == "january" -> "Hiver_6"
+            year == "2024" && month.lowercase() == "february" -> "Hiver_6"
+            year == "2024" && month.lowercase() == "july" -> "Hiver_7"
+            year == "2024" && month.lowercase() == "august" -> "Hiver_7"
+            year == "2024" && month.lowercase() == "september" -> "Hiver_7"
+            else -> "Unknown Cohort"
+        }
+    }
     suspend fun fetchCohort(year: String, month: String): List<Student> {
 
         val baseUrl = "https://api.intra.42.fr/v2/campus/13"
@@ -37,10 +49,14 @@ class StudentAPI(private val token42: String) {
                 append("Authorization", "Bearer $token42")
             }
         }
-        val rawBody = response.bodyAsText()
-        println("Raw API Response:")
-        println(rawBody)
+        val students = response.body<List<Student>>()
 
-        return response.body<List<Student>>()
+        // add cohort to object
+        val cohortName = determineCohort(year, month)
+
+        return students.map { student ->
+            student.copy(cohort = cohortName)
+        }
+
     }
 }
