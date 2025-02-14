@@ -10,6 +10,10 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 
 // https://api.intra.42.fr/v2/campus/13/users?filter[pool_year]=2023&filter[pool_month]=july,august
@@ -43,10 +47,17 @@ class StudentAPI(private val token42: String) {
         }
     }
 
+    // Coroutine fetch of all cohorts
+    suspend fun fetchCohorts(vararg cohorts: String): List<Student> = coroutineScope {
+        cohorts.map { cohort ->
+            async { fetchCohort(cohort) }
+        }.awaitAll().flatten()
+    }
+
     suspend fun fetchCohort(cohort: String): List<Student> {
         // set pagination
         var currentPage = 1
-        val pageSize = 100
+        val pageSize = 30
         val allStudents = mutableListOf<Student>()
 
         val cohortDates = getYearMonthFromCohort(cohort)
