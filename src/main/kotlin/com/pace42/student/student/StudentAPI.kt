@@ -44,19 +44,42 @@ class StudentAPI(private val token42: String) {
     }
 
     suspend fun fetchCohort(cohort: String): List<Student> {
+        // set pagination
+        var currentPage = 1
+        val pageSize = 100
+        val allStudents = mutableListOf<Student>()
 
         val cohortDates = getYearMonthFromCohort(cohort)
-        val baseUrl = "https://api.intra.42.fr/v2/campus/13"
-        val response = client.get("$baseUrl/users?filter[pool_year]=${cohortDates.year}&filter[pool_month]=${cohortDates.month}") {
-            headers {
-                append("Authorization", "Bearer $token42")
+        try {
+            while (true) {
+                val baseUrl = "https://api.intra.42.fr/v2/campus/13"
+                val response =
+                    client.get("$baseUrl/users?filter[pool_year]=${cohortDates.year}&filter[pool_month]=${cohortDates.month}") {
+                        parameter("page[number]", currentPage)
+                        parameter("page[size]", pageSize)
+                        headers {
+                            append("Authorization", "Bearer $token42")
+                        }
+                    }
+
+                val pageStudents = response.body<List<Student>>()
+                allStudents.addAll(pageStudents)
+
+                if (pageStudents.size < pageSize) {
+                    break
+                }
+                currentPage++
             }
-        }
-        val students = response.body<List<Student>>()
 
-        return students.map { student ->
-            student.copy(cohort = cohort)
-        }
+            // add cohort tag to every student
+            return allStudents.map { student ->
+                student.copy(cohort = cohort)
+            }
 
+        } catch (e: Exception) {
+            println(e)
+            return emptyList()
+        }
     }
 }
+
