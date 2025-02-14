@@ -63,6 +63,7 @@ class StudentAPI(private val token42: String) {
         val cohortDates = getYearMonthFromCohort(cohort)
         try {
             while (true) {
+                delay(500)
                 val baseUrl = "https://api.intra.42.fr/v2/campus/13"
                 val response =
                     client.get("$baseUrl/users?filter[pool_year]=${cohortDates.year}&filter[pool_month]=${cohortDates.month}") {
@@ -73,13 +74,27 @@ class StudentAPI(private val token42: String) {
                         }
                     }
 
-                val pageStudents = response.body<List<Student>>()
-                allStudents.addAll(pageStudents)
+                // Handle rate limiting
+                when (response.status.value) {
+                    429 -> {
+                        println("Rate limit hit, waiting before retry...")
+                        delay(10000) // Wait 10 seconds before retrying
+                        continue
+                    }
+                    200 -> {
+                        val pageStudents = response.body<List<Student>>()
+                        allStudents.addAll(pageStudents)
 
-                if (pageStudents.size < pageSize) {
-                    break
+                        if (pageStudents.size < pageSize) {
+                            break
+                        }
+                        currentPage++
+                    }
+                    else -> {
+                        println("Unexpected response: ${response.status}")
+                        break
+                    }
                 }
-                currentPage++
             }
 
             // add cohort tag to every student
