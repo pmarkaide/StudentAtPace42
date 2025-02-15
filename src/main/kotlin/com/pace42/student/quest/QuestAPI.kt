@@ -6,7 +6,6 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 
 
@@ -34,14 +33,19 @@ class QuestAPI(private val token42: String) {
 //        }.awaitAll().flatten()
 //    }
 
-    suspend fun fetchQuestList(login: String): List<Quest> {
+    suspend fun fetchUserQuest(login: String): List<Quest> {
 
         try {
-             return  client.get("https://api.intra.42.fr/v2/users/${login}/quests_users") {
+             val quests =  client.get("https://api.intra.42.fr/v2/users/${login}/quests_users") {
                      headers {
                         append("Authorization", "Bearer $token42")
                     }
                 }.body<List<Quest>>()
+
+            return quests.map { quest ->
+                quest.copy(
+                    validatedAt = quest.validatedAt?.split("T")?.get(0)
+                ) }
         } catch (e: Exception) {
             println(e)
             return emptyList()
