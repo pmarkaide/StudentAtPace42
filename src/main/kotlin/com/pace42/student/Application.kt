@@ -21,7 +21,7 @@ suspend fun main() {
 
         // Export to CSV
         val outputPath = Path("students_export.csv")
-        StudentCSVExporter.exportToCSV(students, outputPath)
+        StudentCSVExporter.exportBasicStudentInfo(students, outputPath)
         println("CSV exported successfully to: ${outputPath.absolutePathString()}")
 
     } catch (e: Exception) {

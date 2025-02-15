@@ -92,7 +92,6 @@ class StudentAPI(private val token42: String) {
                 }
             }
 
-            //https://projects.intra.42.fr/projects/graph?login=pmarkaid
             // add cohort tag to every student and correct urls
             return allStudents.map { student ->
                 student.copy(

@@ -9,38 +9,50 @@ import kotlin.io.path.absolutePathString
 
 class StudentCSVExporter {
     companion object {
-        private val HEADERS = arrayOf(
-            "ID",
+        // Headers for different export types
+        private val STUDENT_BASIC_HEADERS = arrayOf(
+            "Cohort",
             "Login",
             "First Name",
             "Last Name",
             "Email",
-            "Profile URL",
             "Pool Month",
             "Pool Year",
-            "Cohort"
+            "Profile URL",
+            "Graph URL"
         )
 
-        fun exportToCSV(students: List<Student>, outputPath: Path) {
+        fun exportBasicStudentInfo(students: List<Student>, outputPath: Path) {
+            exportToCSV(students, outputPath, STUDENT_BASIC_HEADERS) { student ->
+                arrayOf(
+                    student.cohort,
+                    student.login,
+                    student.firstName,
+                    student.lastName,
+                    student.email,
+                    student.poolMonth,
+                    student.poolYear,
+                    student.profileUrl,
+                    student.graphUrl
+                )
+            }
+        }
+
+        private fun exportToCSV(
+            students: List<Student>,
+            outputPath: Path,
+            headers: Array<String>,
+            recordMapper: (Student) -> Array<String>
+        ) {
             FileWriter(outputPath.absolutePathString()).use { writer ->
                 CSVFormat.DEFAULT
                     .builder()
-                    .setHeader(*HEADERS)
+                    .setHeader(*headers)
                     .build()
                     .print(writer)
                     .use { csvPrinter ->
                         students.forEach { student ->
-                            csvPrinter.printRecord(
-                                student.id,
-                                student.login,
-                                student.firstName,
-                                student.lastName,
-                                student.email,
-                                student.profileUrl,
-                                student.poolMonth,
-                                student.poolYear,
-                                student.cohort
-                            )
+                            csvPrinter.printRecord(*recordMapper(student))
                         }
                     }
             }
