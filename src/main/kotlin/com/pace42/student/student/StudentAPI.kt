@@ -106,5 +106,33 @@ class StudentAPI(private val token42: String) {
             return emptyList()
         }
     }
+
+    private fun getCohortFromYearMonth(year: String, month: String): String {
+        return when {
+            year == "2023" && month.lowercase() in listOf("july", "august") -> "Hiver5"
+            year == "2024" && month.lowercase() in listOf("january", "february") -> "Hiver6"
+            year == "2024" && month.lowercase() in listOf("july", "august", "september") -> "Hiver7"
+            else -> "Unknown"
+        }
+    }
+
+    suspend fun fetchStudent(login: String): List<Student> {
+        val response = client.get("https://api.intra.42.fr/v2/users?"){
+            headers {
+                append("Authorization", "Bearer $token42")
+            }
+            parameter("filter[login]", login)
+        }
+
+        return response.body<List<Student>>().map { student ->
+            val cohort = getCohortFromYearMonth(student.poolYear, student.poolMonth)
+            student.copy(
+                cohort = cohort,
+                profileUrl = student.profileUrl + student.login,
+                graphUrl = student.graphUrl + student.login
+            )
+        }
+
+    }
 }
 
