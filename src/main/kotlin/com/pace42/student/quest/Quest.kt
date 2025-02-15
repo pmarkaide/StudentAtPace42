@@ -24,5 +24,5 @@ data class QuestProgress(
     val login: String,
     val rankName: String,
     val validatedDate: String?,
-    val daysBehind: Long?
+    val daysBuffer: Long?
 )

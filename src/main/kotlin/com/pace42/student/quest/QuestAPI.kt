@@ -97,7 +97,7 @@ class QuestAPI(private val token42: String) {
                 // For completed ranks: compare validation date against deadline
                 validatedAt != null -> {
                     val daysToComplete = TimeUtils.daysBetween(startDate, validatedAt) ?: 0
-                    daysToComplete - deadline // Negative means early completion
+                    deadline - daysToComplete // Negative means late completion
                 }
                 // For the first uncompleted rank: compare current days against deadline
                 rankName == firstUncompletedRank -> {
@@ -111,7 +111,7 @@ class QuestAPI(private val token42: String) {
                 login = first.user.login,
                 rankName = rankName,
                 validatedDate = validatedAt,
-                daysBehind = dayDifference
+                daysBuffer = dayDifference
             )
         }
     }

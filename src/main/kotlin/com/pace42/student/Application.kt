@@ -25,7 +25,7 @@ suspend fun main() {
 //        val outputPath = Path("students_export.csv")
 //        StudentCSVExporter.exportBasicStudentInfo(students, outputPath)
 //        println("CSV exported successfully to: ${outputPath.absolutePathString()}")
-        val quests = questAPI.fetchQuestProgress("aapadill")
+        val quests = questAPI.fetchQuestProgress("upolat")
         quests.forEach { quest ->
             println(quest)
         }
