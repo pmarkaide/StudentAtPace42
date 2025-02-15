@@ -1,7 +1,11 @@
 package com.pace42.student
 
 import com.pace42.student.auth.fetch42token
+import com.pace42.student.export.StudentCSVExporter
 import com.pace42.student.quest.QuestAPI
+import com.pace42.student.student.StudentAPI
+import kotlin.io.path.Path
+import kotlin.io.path.absolutePathString
 
 suspend fun main() {
     val token42 = try {
@@ -10,19 +14,24 @@ suspend fun main() {
         return
     }
 
-//    val studentAPI = StudentAPI(token42)
+    val studentAPI = StudentAPI(token42)
     val questAPI = QuestAPI(token42)
     try {
 //        val  students = studentAPI.fetchCohorts("Hiver5", "Hiver6", "Hiver7")
 //        studentAPI.close()
 //        println("Number of students: ${students.size}")
-//
+
 //        // Export to CSV
 //        val outputPath = Path("students_export.csv")
 //        StudentCSVExporter.exportBasicStudentInfo(students, outputPath)
 //        println("CSV exported successfully to: ${outputPath.absolutePathString()}")
-        val quests = questAPI.fetchUserQuest("pmarkaid")
-       quests.forEach(::println)
+        val quests = questAPI.fetchQuestProgress("pmarkaid")
+        quests.forEach { quest ->
+            println(quest)
+        }
+
+
+
     } catch (e: Exception) {
         return
     }

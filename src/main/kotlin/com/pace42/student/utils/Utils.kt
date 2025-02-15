@@ -1,5 +1,9 @@
 package com.pace42.student.utils
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+
 object CohortUtils {
     data class CohortDates(
         val year: String,
@@ -22,5 +26,18 @@ object CohortUtils {
             year == "2024" && month.lowercase() in listOf("july", "august", "september") -> "Hiver7"
             else -> "Unknown"
         }
+    }
+}
+
+object TimeUtils {
+    fun daysBetween(startDate: String, validatedDate: String?): Long? {
+
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd") // Expected date format
+        if(validatedDate == null)
+            return null
+        val validatedLocalDate = LocalDate.parse(validatedDate, formatter)
+        val startLocalDate = LocalDate.parse(startDate, formatter)
+
+        return ChronoUnit.DAYS.between(startLocalDate, validatedLocalDate)
     }
 }
