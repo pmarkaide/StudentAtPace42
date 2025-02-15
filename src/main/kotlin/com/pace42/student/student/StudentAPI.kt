@@ -92,9 +92,13 @@ class StudentAPI(private val token42: String) {
                 }
             }
 
-            // add cohort tag to every student
+            // add cohort tag to every student and correct urls
             return allStudents.map { student ->
-                student.copy(cohort = cohort)
+                student.copy(
+                    cohort = cohort,
+                    profileUrl = student.profileUrl + student.login,
+                    graphUrl = student.graphUrl + student.login
+                )
             }
 
         } catch (e: Exception) {
