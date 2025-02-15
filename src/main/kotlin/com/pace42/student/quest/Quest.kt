@@ -9,8 +9,8 @@ data class QuestName(
 )
 
 @Serializable
-data class QuestList(
+data class Quest(
     @SerialName("validated_at")
-    val validatedAt: String,
+    val validatedAt: String?,
     val quest: QuestName
 )
