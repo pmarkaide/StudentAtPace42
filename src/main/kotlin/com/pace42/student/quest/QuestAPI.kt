@@ -83,18 +83,27 @@ class QuestAPI(private val token42: String) {
 
         // Create a map of completed quests for lookup
         val completedQuests = quests.associate { it.quest.name to it.validatedAt }
-        println(daysSinceStart)
+
+        // Find the first uncompleted rank
+        val firstUncompletedRank = rankDeadlines.firstOrNull { (rankName, _) ->
+            !completedQuests.containsKey(rankName)
+        }?.first
+
         // Generate progress for all ranks
         return rankDeadlines.map { (rankName, deadline) ->
             val validatedAt = completedQuests[rankName]
 
-            val dayDifference = if (validatedAt != null) {
+            val dayDifference = when {
                 // For completed ranks: compare validation date against deadline
-                val daysToComplete = TimeUtils.daysBetween(startDate, validatedAt) ?: 0
-                daysToComplete - deadline  // Negative means completed early, positive means completed behind
-            } else {
-                // For uncompleted ranks: compare current days against deadline
-                deadline - daysSinceStart
+                validatedAt != null -> {
+                    val daysToComplete = TimeUtils.daysBetween(startDate, validatedAt) ?: 0
+                    daysToComplete - deadline // Negative means early completion
+                }
+                // For the first uncompleted rank: compare current days against deadline
+                rankName == firstUncompletedRank -> {
+                    deadline - daysSinceStart
+                }
+                else -> null // mark rest as null
             }
 
             QuestProgress(
