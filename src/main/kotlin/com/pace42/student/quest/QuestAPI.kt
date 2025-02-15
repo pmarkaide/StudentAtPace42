@@ -145,19 +145,19 @@ class QuestAPI(private val token42: String) {
         }
     }
 
-
-    suspend fun fetchQuestProgress(login: String): List<QuestProgress> {
-        val quests = fetchUserQuests(login)
+    fun calculateQuestProgress(quests: List<Quest>): List<QuestProgress> {
         if (quests.isEmpty()) return emptyList()
 
-        val first = quests.first()
-        val cohort = CohortUtils.getCohortFromYearMonth(first.user.poolYear, first.user.poolMonth)
+        // Use the login from the first quest (they should all be the same user)
+        val user = quests.firstOrNull()?.user ?: return emptyList()
+        val login = user.login
+        val cohort = CohortUtils.getCohortFromYearMonth(user.poolYear, user.poolMonth)
 
         val startDate = when (cohort) {
             "Hiver5" -> "2023-10-23"
             "Hiver6" -> "2024-04-15"
             "Hiver7" -> "2024-10-28"
-            else -> "Unknown"
+            else -> return emptyList() // Invalid cohort
         }
 
         val rankDeadlines = listOf(
@@ -200,7 +200,7 @@ class QuestAPI(private val token42: String) {
 
             QuestProgress(
                 cohort = cohort,
-                login = first.user.login,
+                login = login,
                 rankName = rankName,
                 validatedDate = validatedAt,
                 daysBuffer = dayDifference
@@ -208,6 +208,15 @@ class QuestAPI(private val token42: String) {
         }
     }
 
+
+    suspend fun fetchUserQuestProgress(login: String): List<QuestProgress> {
+        val quests = fetchUserQuests(login)
+        if (quests.isEmpty()) return emptyList()
+
+        return calculateQuestProgress(quests)
+    }
+
+    // This works but is very very slow, use fetchCampusQuests instead
     suspend fun fetchCohortsQuestProgress(vararg cohorts: String): List<QuestProgress> = coroutineScope {
         val studentAPI = StudentAPI(token42)
         val students = studentAPI.fetchCohorts(*cohorts)
