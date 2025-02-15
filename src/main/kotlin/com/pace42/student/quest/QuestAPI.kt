@@ -7,8 +7,15 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
+
 import com.pace42.student.utils.CohortUtils
 import com.pace42.student.utils.TimeUtils
+import com.pace42.student.student.StudentAPI
+
 
 
 class QuestAPI(private val token42: String) {
@@ -26,13 +33,6 @@ class QuestAPI(private val token42: String) {
     fun close() {
         client.close()
     }
-
-//    // Coroutine fetch of all cohorts
-//    suspend fun fetchCohorts(vararg cohorts: String): List<Student> = coroutineScope {
-//        cohorts.map { cohort ->
-//            async { fetchCohort(cohort) }
-//        }.awaitAll().flatten()
-//    }
 
     suspend fun fetchUserQuests(login: String): List<Quest> {
 
@@ -114,5 +114,34 @@ class QuestAPI(private val token42: String) {
                 daysBuffer = dayDifference
             )
         }
+    }
+
+    suspend fun fetchCohortsQuestProgress(vararg cohorts: String): List<QuestProgress> = coroutineScope {
+        val studentAPI = StudentAPI(token42)
+        val students = studentAPI.fetchCohorts(*cohorts)
+
+        val allProgress = mutableListOf<QuestProgress>()
+
+        val chunkSize = 2
+        students.chunked(chunkSize).forEach { chunk ->
+            // Process each chunk concurrently
+            val chunkProgress = chunk.map { student ->
+                async {
+                    try {
+                        delay(500)
+                        println("fetching ${student.login} quests...")
+                        fetchQuestProgress(student.login)
+                    } catch (e: Exception) {
+                        println("Error fetching progress for ${student.login}: ${e.message}")
+                        emptyList()
+                    }
+                }
+            }.awaitAll()
+
+            // Add all progress from this chunk to our result list
+            allProgress.addAll(chunkProgress.flatten())
+        }
+
+        allProgress
     }
 }
