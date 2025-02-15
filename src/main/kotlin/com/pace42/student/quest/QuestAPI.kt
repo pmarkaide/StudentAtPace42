@@ -54,28 +54,25 @@ class QuestAPI(private val token42: String) {
         }
     }
 
-    private fun isValidStudent(student: Student): Boolean {
-        return !student.login.isNullOrEmpty() &&
-                !student.firstName.isNullOrEmpty() &&
-                !student.lastName.isNullOrEmpty() &&
-                !student.email.isNullOrEmpty() &&
-                !student.poolMonth.isNullOrEmpty() &&
-                !student.poolYear.isNullOrEmpty()
-    }
-
-    private val json = Json {
-        ignoreUnknownKeys = true
-        prettyPrint = true
-        coerceInputValues = true
-    }
-
-    private suspend inline fun <reified T> safeJsonParse(jsonElement: JsonElement): T? {
+    private fun validateJsonUser(jsonElement: JsonObject): Boolean {
+        // Check if any required field is null or empty in the JSON before parsing
         return try {
-            json.decodeFromJsonElement<T>(jsonElement)
+            val user = jsonElement.jsonObject["user"]?.jsonObject ?: return false
+
+            // Check each required field exists and is not null
+            val fieldsToCheck = listOf(
+                "login", "first_name", "last_name", "email",
+                "pool_month", "pool_year"
+            )
+
+            fieldsToCheck.all { field ->
+                val value = user[field]
+                value != null && value !is JsonNull &&
+                        (value as? JsonPrimitive)?.content?.isNotEmpty() ?: false
+            }
         } catch (e: Exception) {
-            println("Failed to parse JSON: ${e.message}")
-            println("Problematic JSON: $jsonElement")
-            null
+            println("Failed to validate user JSON: ${e.message}")
+            false
         }
     }
 
@@ -104,24 +101,24 @@ class QuestAPI(private val token42: String) {
                         // Parse response as JsonArray first
                         val jsonArray = response.body<JsonArray>()
 
-                        // Filter out quests with invalid student data during parsing
-                        val validQuests = jsonArray.mapNotNull { jsonElement ->
-                            val quest = safeJsonParse<Quest>(jsonElement)
-                            if (quest == null) {
-                                println("Failed to parse quest")
-                                null
-                            } else if (!isValidStudent(quest.user)) {
-                                println("Invalid student data for user ${quest.user.login}: " +
-                                        "firstName=${quest.user.firstName}, " +
-                                        "lastName=${quest.user.lastName}, " +
-                                        "email=${quest.user.email}, " +
-                                        "poolMonth=${quest.user.poolMonth}, " +
-                                        "poolYear=${quest.user.poolYear}")
-                                null
+                        // Pre-validate JSON before attempting to parse into objects
+                        val validQuests = jsonArray.mapNotNull { element ->
+                            val jsonObject = element.jsonObject
+                            if (validateJsonUser(jsonObject)) {
+                                try {
+                                    Json {
+                                        ignoreUnknownKeys = true
+                                        coerceInputValues = true
+                                    }.decodeFromJsonElement<Quest>(element).copy(
+                                        validatedAt = jsonObject["validated_at"]?.jsonPrimitive?.content?.split("T")?.get(0)
+                                    )
+                                } catch (e: Exception) {
+                                    println("Failed to parse valid JSON to Quest: ${e.message}")
+                                    null
+                                }
                             } else {
-                                quest.copy(
-                                    validatedAt = quest.validatedAt?.split("T")?.get(0)
-                                )
+                                println("Skipping quest with invalid user data")
+                                null
                             }
                         }
 

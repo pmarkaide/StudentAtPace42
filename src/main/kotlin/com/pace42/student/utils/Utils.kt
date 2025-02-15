@@ -19,11 +19,11 @@ object CohortUtils {
         }
     }
 
-    fun getCohortFromYearMonth(year: String, month: String): String {
+    fun getCohortFromYearMonth(year: String?, month: String?): String {
         return when {
-            year == "2023" && month.lowercase() in listOf("july", "august") -> "Hiver5"
-            year == "2024" && month.lowercase() in listOf("january", "february") -> "Hiver6"
-            year == "2024" && month.lowercase() in listOf("july", "august", "september") -> "Hiver7"
+            year == "2023" && month?.lowercase() in listOf("july", "august") -> "Hiver5"
+            year == "2024" && month?.lowercase() in listOf("january", "february") -> "Hiver6"
+            year == "2024" && month?.lowercase() in listOf("july", "august", "september") -> "Hiver7"
             else -> "Unknown"
         }
     }
