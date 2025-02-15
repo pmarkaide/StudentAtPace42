@@ -40,4 +40,8 @@ object TimeUtils {
 
         return ChronoUnit.DAYS.between(startLocalDate, validatedLocalDate)
     }
+
+    fun getToday(): String{
+        return LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+    }
 }
