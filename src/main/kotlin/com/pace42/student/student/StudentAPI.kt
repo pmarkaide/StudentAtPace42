@@ -11,6 +11,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
+import com.pace42.student.utils.CohortUtils
 
 
 class StudentAPI(private val token42: String) {
@@ -33,14 +34,6 @@ class StudentAPI(private val token42: String) {
         val month: String,
     )
 
-    private fun getYearMonthFromCohort(cohort: String): CohortDates {
-        return when (cohort) {
-            "Hiver5" -> CohortDates("2023", "july,august")
-            "Hiver6" -> CohortDates("2024", "january,february")
-            "Hiver7" -> CohortDates("2024", "july,august,september")
-            else -> CohortDates("Unknown", "Unknown")
-        }
-    }
 
     // Coroutine fetch of all cohorts
     suspend fun fetchCohorts(vararg cohorts: String): List<Student> = coroutineScope {
@@ -55,7 +48,7 @@ class StudentAPI(private val token42: String) {
         val pageSize = 100
         val allStudents = mutableListOf<Student>()
 
-        val cohortDates = getYearMonthFromCohort(cohort)
+        val cohortDates = CohortUtils.getYearMonthFromCohort(cohort)
         try {
             while (true) {
                 delay(500)
@@ -107,15 +100,6 @@ class StudentAPI(private val token42: String) {
         }
     }
 
-    private fun getCohortFromYearMonth(year: String, month: String): String {
-        return when {
-            year == "2023" && month.lowercase() in listOf("july", "august") -> "Hiver5"
-            year == "2024" && month.lowercase() in listOf("january", "february") -> "Hiver6"
-            year == "2024" && month.lowercase() in listOf("july", "august", "september") -> "Hiver7"
-            else -> "Unknown"
-        }
-    }
-
     suspend fun fetchStudent(login: String): List<Student> {
         val response = client.get("https://api.intra.42.fr/v2/users?"){
             headers {
@@ -125,7 +109,7 @@ class StudentAPI(private val token42: String) {
         }
 
         return response.body<List<Student>>().map { student ->
-            val cohort = getCohortFromYearMonth(student.poolYear, student.poolMonth)
+            val cohort = CohortUtils.getCohortFromYearMonth(student.poolYear, student.poolMonth)
             student.copy(
                 cohort = cohort,
                 profileUrl = student.profileUrl + student.login,
