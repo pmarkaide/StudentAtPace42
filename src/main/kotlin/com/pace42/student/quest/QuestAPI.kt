@@ -6,16 +6,16 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.serialization.json.Json
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import kotlinx.serialization.json.*
 import kotlinx.coroutines.delay
 
 import com.pace42.student.utils.CohortUtils
 import com.pace42.student.utils.TimeUtils
 import com.pace42.student.student.StudentAPI
-
+import com.pace42.student.student.Student
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 
 
 class QuestAPI(private val token42: String) {
@@ -53,6 +53,101 @@ class QuestAPI(private val token42: String) {
             return emptyList()
         }
     }
+
+    private fun isValidStudent(student: Student): Boolean {
+        return !student.login.isNullOrEmpty() &&
+                !student.firstName.isNullOrEmpty() &&
+                !student.lastName.isNullOrEmpty() &&
+                !student.email.isNullOrEmpty() &&
+                !student.poolMonth.isNullOrEmpty() &&
+                !student.poolYear.isNullOrEmpty()
+    }
+
+    private val json = Json {
+        ignoreUnknownKeys = true
+        prettyPrint = true
+        coerceInputValues = true
+    }
+
+    private suspend inline fun <reified T> safeJsonParse(jsonElement: JsonElement): T? {
+        return try {
+            json.decodeFromJsonElement<T>(jsonElement)
+        } catch (e: Exception) {
+            println("Failed to parse JSON: ${e.message}")
+            println("Problematic JSON: $jsonElement")
+            null
+        }
+    }
+
+    suspend fun fetchCampusQuests(): List<Quest> {
+        var currentPage = 1
+        val pageSize = 100
+        val allQuests = mutableListOf<Quest>()
+
+        try {
+            while (true) {
+                val response = client.get("https://api.intra.42.fr/v2/quests_users?filter[campus_id]=13") {
+                    parameter("page[number]", currentPage)
+                    parameter("page[size]", pageSize)
+                    headers {
+                        append("Authorization", "Bearer $token42")
+                    }
+                }
+
+                when (response.status.value) {
+                    429 -> {
+                        println("Rate limit hit, waiting before retry...")
+                        delay(5000)
+                        continue
+                    }
+                    200 -> {
+                        // Parse response as JsonArray first
+                        val jsonArray = response.body<JsonArray>()
+
+                        // Filter out quests with invalid student data during parsing
+                        val validQuests = jsonArray.mapNotNull { jsonElement ->
+                            val quest = safeJsonParse<Quest>(jsonElement)
+                            if (quest == null) {
+                                println("Failed to parse quest")
+                                null
+                            } else if (!isValidStudent(quest.user)) {
+                                println("Invalid student data for user ${quest.user.login}: " +
+                                        "firstName=${quest.user.firstName}, " +
+                                        "lastName=${quest.user.lastName}, " +
+                                        "email=${quest.user.email}, " +
+                                        "poolMonth=${quest.user.poolMonth}, " +
+                                        "poolYear=${quest.user.poolYear}")
+                                null
+                            } else {
+                                quest.copy(
+                                    validatedAt = quest.validatedAt?.split("T")?.get(0)
+                                )
+                            }
+                        }
+
+                        println("Successfully got ${validQuests.size} valid quests")
+                        allQuests.addAll(validQuests)
+
+                        if (validQuests.size < pageSize) {
+                            break
+                        }
+                        currentPage++
+                    }
+                    else -> {
+                        println("Unexpected response: ${response.status}")
+                        break
+                    }
+                }
+            }
+
+            return allQuests
+
+        } catch (e: Exception) {
+            println("Error in fetchCampusQuests: ${e.message}")
+            return emptyList()
+        }
+    }
+
 
     suspend fun fetchQuestProgress(login: String): List<QuestProgress> {
         val quests = fetchUserQuests(login)

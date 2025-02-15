@@ -33,8 +33,8 @@ suspend fun main() {
 
         val questAPI = QuestAPI(token42)
         try {
-            val progress = questAPI.fetchCohortsQuestProgress("Hiver5", "Hiver6", "Hiver7")
-            println("Fetched progress for ${progress.size} quest entries")
+            val quests = questAPI.fetchCampusQuests()
+            println("Fetched quests for ${quests.size} quest entries")
         } finally {
             questAPI.close()
         }
