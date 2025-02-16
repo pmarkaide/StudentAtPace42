@@ -76,6 +76,16 @@ class QuestAPI(private val token42: String) {
         }
     }
 
+    fun calculateCampusQuestProgress(quests: List<Quest>): List<QuestProgress> {
+        // Group quests by user login
+        val questsByUser = quests.groupBy { it.user.login }
+
+        // Calculate progress for each user's quests
+        return questsByUser.flatMap { (_, userQuests) ->
+            calculateQuestProgress(userQuests)
+        }
+    }
+
     suspend fun fetchCampusQuests(): List<Quest> {
         var currentPage = 1
         val pageSize = 100
@@ -145,6 +155,7 @@ class QuestAPI(private val token42: String) {
         }
     }
 
+    // calculate progress for a given user based on Quests
     fun calculateQuestProgress(quests: List<Quest>): List<QuestProgress> {
         if (quests.isEmpty()) return emptyList()
 
@@ -231,7 +242,7 @@ class QuestAPI(private val token42: String) {
                     try {
                         delay(500)
                         println("fetching ${student.login} quests...")
-                        fetchQuestProgress(student.login)
+                        fetchUserQuestProgress(student.login)
                     } catch (e: Exception) {
                         println("Error fetching progress for ${student.login}: ${e.message}")
                         emptyList()
