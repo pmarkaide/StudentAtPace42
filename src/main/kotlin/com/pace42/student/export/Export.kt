@@ -68,6 +68,7 @@ class StudentProgressCSVExporter {
             "Login",
             "First Name",
             "Last Name",
+            "Active Rank Buffer",
             "Email",
             "Pool Month",
             "Pool Year",
@@ -84,6 +85,13 @@ class StudentProgressCSVExporter {
             "Common Core Rank 05",
             "Common Core Rank 06"
         )
+
+        private fun findLastCompletedRankBuffer(rankBuffers: Map<String, String>): String {
+            val lastRankName = RANK_NAMES.findLast { rankName ->
+                rankBuffers[rankName]?.isNotEmpty() == true
+            }
+            return lastRankName?.let { rankBuffers[it] } ?: "Not Started"
+        }
 
         fun exportStudentsProgress(
             students: List<Student>,
@@ -112,6 +120,9 @@ class StudentProgressCSVExporter {
                                 it.rankName to (it.daysBuffer?.toString() ?: "")
                             }
 
+                            // Find the last completed rank
+                            val activeRankBuffer = findLastCompletedRankBuffer(rankBuffers)
+
                             // Build the complete record with base info and rank buffers
                             val record = mutableListOf(
                                 student.cohort,
@@ -119,6 +130,7 @@ class StudentProgressCSVExporter {
                                 student.firstName,
                                 student.lastName,
                                 student.email,
+                                activeRankBuffer,
                                 student.poolMonth,
                                 student.poolYear,
                                 student.profileUrl,
