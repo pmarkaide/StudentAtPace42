@@ -15,5 +15,6 @@ data class Student(
     @SerialName("pool_year") val poolYear: String,
     val profileUrl: String = "https://profile.intra.42.fr/users/",
     val graphUrl: String = "https://projects.intra.42.fr/projects/graph?login=",
-    val cohort: String = "Unknown"
+    val cohort: String = "Unknown",
+    @SerialName("active?")val active: Boolean = true,
 )

@@ -21,7 +21,9 @@ suspend fun main() {
 
     try {
         val students = studentAPI.fetchCohorts("Hiver5", "Hiver6", "Hiver7")
+        println("Fetched ${students.size} active students")
         val quests = questAPI.fetchCampusQuests()
+        println("Fetched ${quests.size} quests")
         val progress = questAPI.calculateCampusQuestProgress(quests)
 
         StudentProgressCSVExporter.exportStudentsProgress(
@@ -29,6 +31,7 @@ suspend fun main() {
             questProgress = progress,
             outputPath = Path("student_progress.csv")
         )
+        println("CSV exported successfully")
     } catch (e: Exception) {
         println(e)
         e.printStackTrace()
