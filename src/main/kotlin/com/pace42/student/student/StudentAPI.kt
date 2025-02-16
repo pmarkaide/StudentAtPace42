@@ -66,7 +66,7 @@ class StudentAPI(private val token42: String) {
                 when (response.status.value) {
                     429 -> {
                         println("Rate limit hit, waiting before retry...")
-                        delay(10000) // Wait 10 seconds before retrying
+                        delay(5000) // Wait 10 seconds before retrying
                         continue
                     }
                     200 -> {
@@ -86,13 +86,15 @@ class StudentAPI(private val token42: String) {
             }
 
             // add cohort tag to every student and correct urls
-            return allStudents.map { student ->
-                student.copy(
-                    cohort = cohort,
-                    profileUrl = student.profileUrl + student.login,
-                    graphUrl = student.graphUrl + student.login
-                )
-            }
+            return allStudents
+                .filter { it.active }  // Only keep active students
+                .map { student ->
+                    student.copy(
+                        cohort = cohort,
+                        profileUrl = student.profileUrl + student.login,
+                        graphUrl = student.graphUrl + student.login
+                    )
+                }
 
         } catch (e: Exception) {
             println(e)
