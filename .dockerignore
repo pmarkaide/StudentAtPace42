@@ -1,0 +1,7 @@
+.gradle/
+build/
+output/
+.idea/
+.git/
+.gitignore
+*.csv
