@@ -1,44 +1,72 @@
-# student
+# 42 Student Progress Tracker
 
-This project was created using the [Ktor Project Generator](https://start.ktor.io).
+This application fetches student data from the 42 API and generates a CSV file containing student progress information across various ranks in the common core curriculum.
 
-Here are some useful links to get you started:
+## Purpose
 
-- [Ktor Documentation](https://ktor.io/docs/home.html)
-- [Ktor GitHub page](https://github.com/ktorio/ktor)
-- The [Ktor Slack chat](https://app.slack.com/client/T09229ZC6/C0A974TJ9). You'll need to [request an invite](https://surveys.jetbrains.com/s3/kotlin-slack-sign-up) to join.
+The main purpose of this application is to:
+- Fetch student data from specified cohorts (Hiver5, Hiver6, Hiver7)
+- Retrieve quest completion information
+- Calculate the progress of each student through the common core ranks
+- Generate a comprehensive CSV report showing days buffer for each rank
 
-## Features
+## Requirements
 
-Here's a list of features included in this project:
+- Docker and Docker Compose
+- 42 API credentials (UID and Secret)
 
-| Name                                                                   | Description                                                                        |
-| ------------------------------------------------------------------------|------------------------------------------------------------------------------------ |
-| [Authentication](https://start.ktor.io/p/auth)                         | Provides extension point for handling the Authorization header                     |
-| [Routing](https://start.ktor.io/p/routing)                             | Provides a structured routing DSL                                                  |
-| [Authentication OAuth](https://start.ktor.io/p/auth-oauth)             | Handles OAuth Bearer authentication scheme                                         |
-| [Content Negotiation](https://start.ktor.io/p/content-negotiation)     | Provides automatic content conversion according to Content-Type and Accept headers |
-| [kotlinx.serialization](https://start.ktor.io/p/kotlinx-serialization) | Handles JSON serialization using kotlinx.serialization library                     |
-| [Swagger](https://start.ktor.io/p/swagger)                             | Serves Swagger UI for your project                                                 |
+## Setup and Running
 
-## Building & Running
+1. Create a `.env` file in the project root with your 42 API credentials:
+   ```
+   UID_42=your_42_api_uid
+   SECRET_42=your_42_api_secret
+   ```
+   *Important: Do not include quotes around the values*
 
-To build or run the project, use one of the following tasks:
+2. Run the application using Docker:
+   ```bash
+   # First time or after code changes
+   ./run.sh
+   
+   # Run without rebuilding
+   ./run-only.sh
+   ```
 
-| Task                          | Description                                                          |
-| -------------------------------|---------------------------------------------------------------------- |
-| `./gradlew test`              | Run the tests                                                        |
-| `./gradlew build`             | Build everything                                                     |
-| `buildFatJar`                 | Build an executable JAR of the server with all dependencies included |
-| `buildImage`                  | Build the docker image to use with the fat JAR                       |
-| `publishImageToLocalRegistry` | Publish the docker image locally                                     |
-| `run`                         | Run the server                                                       |
-| `runDocker`                   | Run using the local docker image                                     |
+3. The CSV file will be generated in the `output` directory of your project root.
 
-If the server starts successfully, you'll see the following output:
+## Output
 
-```
-2024-12-04 14:32:45.584 [main] INFO  Application - Application started in 0.303 seconds.
-2024-12-04 14:32:45.682 [main] INFO  Application - Responding at http://0.0.0.0:8080
-```
+The generated CSV file (`student_progress.csv`) will be located in the `output` directory of your project.
 
+## Appendix: CSV Contents
+
+The CSV file contains the following columns:
+
+| Column | Description |
+|--------|-------------|
+| Cohort | Student's cohort (e.g., Hiver5, Hiver6, Hiver7) |
+| Login | Student's login identifier |
+| First Name | Student's first name |
+| Last Name | Student's last name |
+| Active Rank Buffer | Days buffer for the student's current active rank |
+| Pool Month | Month when the student completed the pool |
+| Pool Year | Year when the student completed the pool |
+| Profile URL | URL to the student's 42 profile |
+| Graph URL | URL to the student's project graph |
+| Common Core Rank 00 | Days buffer for Rank 00 completion |
+| Common Core Rank 01 | Days buffer for Rank 01 completion |
+| Common Core Rank 02 | Days buffer for Rank 02 completion |
+| Common Core Rank 03 | Days buffer for Rank 03 completion |
+| Common Core Rank 04 | Days buffer for Rank 04 completion |
+| Common Core Rank 05 | Days buffer for Rank 05 completion |
+| Common Core Rank 06 | Days buffer for Rank 06 completion |
+
+### Understanding Days Buffer
+
+The "Days Buffer" represents the difference between the deadline and the actual completion date:
+- Positive values: Student completed the rank ahead of schedule (X days early)
+- Negative values: Student completed the rank behind schedule (X days late)
+- Empty: Rank not yet completed
+
+Each cohort has specific start dates and deadlines for rank completion, which are used to calculate the buffer values.
