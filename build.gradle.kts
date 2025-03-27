@@ -1,18 +1,21 @@
-
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor)
     alias(libs.plugins.kotlin.plugin.serialization)
+    application
 }
 
 group = "com.pace42"
 version = "0.0.1"
 
 application {
-    mainClass.set("io.ktor.server.netty.EngineMain")
+    mainClass.set("com.pace42.student.ApplicationKt")
 
-    val isDevelopment: Boolean = project.ext.has("development")
-    applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
+    // Configure application logging
+    applicationDefaultJvmArgs = listOf(
+        "-Dorg.slf4j.simpleLogger.defaultLogLevel=info",
+        "-Dorg.slf4j.simpleLogger.showDateTime=true"
+    )
 }
 
 repositories {
