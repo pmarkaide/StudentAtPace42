@@ -26,11 +26,15 @@ The main purpose of this application is to:
 
 2. Run the application using Docker:
    ```bash
-   # First time or after code changes
-   ./run.sh
+   # create a output folder
+   mkdir -p output
    
-   # Run without rebuilding
-   ./run-only.sh
+   # First time or after code changes
+   docker-compose up --build
+   
+   # Run the container to update the csv file 
+   docker-compose up
+
    ```
 
 3. The CSV file will be generated in the `output` directory of your project root.
